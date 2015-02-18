@@ -8,8 +8,8 @@ velocity_viewer <-function(driveLog, DriverFile){
   driveLog_back_sec= rbind( c(0,0),driveLog)  
   driveLog = rbind(driveLog,c(0,0))
   
-  driveVelocity=(sqrt(((driveLog[,1]-firstdriver_back_sec[,1])**2)+
-                        ((driveLog[,2]-firstdriver_back_sec[,2])**2)))
+  driveVelocity=(sqrt((driveLog[,1]-driveLog_back_sec[,1])**2+
+                        (driveLog[,2]-driveLog_back_sec[,2])**2))
   length(driveVelocity)<-length(driveVelocity)-10
   
   #converts M/s to kM/h

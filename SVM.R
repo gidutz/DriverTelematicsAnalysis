@@ -4,32 +4,30 @@ library(e1071)
 library(tools)
 
 
-featuresDir = "/Users/gidutz/Downloads/kaggle/drivers/01_features"
+featuresDir = "/Users/gidutz/Downloads/kaggle/drivers/02_features"
 
 #list all files under Directory
 driversFiles=list.files(path =featuresDir,full.names = T )
 
-#length(driversFiles)<-length(driversFiles)-1
 
 readDrives <- function(driverLog){
   driverTable = read.csv(file = driverLog)
   driverTable
 }
 
-predictions = c()
 aggregated_distance_matrix = c()
 
 #for each driver
-for(driverFile in driversFiles[40:46]){
+for(driverFile in driversFiles){
   
   # The driver's file is the positive samples
   positive_samples = readDrives(driverFile)  
   
   #take 10 random drives from 10 random drivers
   negavie_sapmles = numeric()
-  for(randomDriver in sample(driversFiles[driversFiles!=driverFile],50)){
+  for(randomDriver in sample(driversFiles[driversFiles!=driverFile],5)){
     alldrives=readDrives(randomDriver)
-    negavie_sapmles = rbind(negavie_sapmles,alldrives[sample(200,1),])
+    negavie_sapmles = rbind(negavie_sapmles,alldrives[sample(200,35),])
   }
   
   #add target values
@@ -40,11 +38,10 @@ for(driverFile in driversFiles[40:46]){
   
   #add positive and negative examples to the data set
   data =as.data.frame(rbind(negavie_sapmles,positive_samples))
-  data = data[-6]
   
-  #shuffel the data
-  nr<-dim(data)[1]
-  data = data[sample.int(nr),]
+    #shuffel the data
+    nr<-dim(data)[1]
+    data = data[sample.int(nr),]
   
   #replace all NaNs with colMeans
   f=function(x){
@@ -55,27 +52,37 @@ for(driverFile in driversFiles[40:46]){
   }
   data=apply(data,2,f)  
   
-  train = data[1:(nrow(data)/3),]
-  test = data[-(1:(nrow(data)/3)),]
+  #split the data into training and testing sets
+  train = data[1:(2*nrow(data)/3),]
+  test = data[-(1:(2*nrow(data)/3)),]
   
-  model  <- svm(x= train[,-c(1,ncol(train))], y=train[,ncol(train)],kernel ="radial", type="one-classification",cost = 0.5 )
+  #Learn using SVM (remove col 1 which indicates the ride index)
+  model  <- svm(x= train[,-c(1,2,ncol(train))], y=train[,ncol(train)],kernel ="radial", type="C-classification",cost =5 , degree=5)
   
-  prediction <- predict(model, test[,-c(1,ncol(train))])
+  
+  prediction <- predict(model, test[,-c(1,2,ncol(train))])
   validation = cbind(prediction, test[,ncol(test)])
   aggregated_distance_matrix = rbind(aggregated_distance_matrix, validation)
-  
-  #   positive_samples = train[which(train[,ncol(train)]==1, arr.ind=T),] #after NA taken cared of
-  #   prediction <- predict(model, positive_samples[,-c(1,ncol(train))])
   
   driver = file_path_sans_ext(basename(driverFile))
   
   cat( driver,"\n")
+  positive_samples=apply(positive_samples,2,f)  
   
-  #   outputFile = "/Users/gidutz/Downloads/kaggle/drivers/result/file9.txt"
-  #   write(paste(driver,"_",c(1:length(prediction)),",", prediction,sep = ''), file = outputFile,  append = T )
+  output = numeric()
+  output <-predict(model , positive_samples[,-c(1,2,ncol(positive_samples))])
+  outputFile = "/Users/gidutz/Downloads/kaggle/drivers/result/file14.txt"
+  write(paste(driver,"_",positive_samples[,2],",", as.numeric(output)-1,sep = ''), file = outputFile,  append = T )
   
 }
-print(table(aggregated_distance_matrix[,1],aggregated_distance_matrix[,2]))
+confusion_matrix = (table(prediction=aggregated_distance_matrix[,1]-1,actual=aggregated_distance_matrix[,2]))
+
+NPV = confusion_matrix[1,1]/(confusion_matrix[1,1] + confusion_matrix[2,1])
+recall = confusion_matrix[2,2]/(confusion_matrix[2,2] + confusion_matrix[1,2])
+prescision =  confusion_matrix[2,2]/(confusion_matrix[2,2] + confusion_matrix[2,1])
+print(confusion_matrix)
+cat(" NPV =\t ",NPV,"\n","recall =\t ",recall,"\n","prescision =\t ",prescision,"\n")
+
 
 
 

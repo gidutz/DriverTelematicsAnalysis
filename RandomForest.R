@@ -55,7 +55,7 @@ for(driverFile in sample(driversFiles,10)){
   train = data[1:(2*nrow(data)/3),]
   test = data[-(1:(2*nrow(data)/3)),]
   
-  
+  set.seed(100)
   model <- randomForest( x= train[,-c(1,2,ncol(train))], 
                        y=as.factor(train[,ncol(train)]),importance = T ,
                        controls=cforest_unbiased(ntree=10, mtry=sample(5)))
@@ -85,16 +85,3 @@ recall = confusion_matrix[2,2]/(confusion_matrix[2,2] + confusion_matrix[1,2])
 prescision =  confusion_matrix[2,2]/(confusion_matrix[2,2] + confusion_matrix[2,1])
 print(confusion_matrix)
 cat(" NPV =\t ",NPV,"\n","recall =\t ",recall,"\n","prescision =\t ",prescision,"\n")
-
-
-
-
-
-
-
-
-
-
-
-
-

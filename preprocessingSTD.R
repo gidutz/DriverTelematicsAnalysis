@@ -47,31 +47,37 @@ featureCalculator <-function(driveLog, DriverFile){
   features = c(features,"driveNumber" = driveNumber )
   
   #1 max velocity
-  features = c(features,"max"=max(driveVelocity) )
+  features = c(features,"max velocity"=max(driveVelocity) )
+  
+  # _ average velocity
+  features = c(features,"average velocity"=mean(driveVelocity))
   
   #2 median velocity
-  features = c(features,quantile(driveVelocity, c(.5)))
+  features = c(features,"median velocity" = quantile(driveVelocity, c(.5)))
   
   #3 10th percentile velocity
-  features = c(features,quantile(driveVelocity, c(.1)))
+  features = c(features,"10th percentile velocity" = quantile(driveVelocity, c(.1)))
   
   #4 90th percentile velocity
-  features = c(features,quantile(driveVelocity, c(.9)))
+  features = c(features,"90th percentile velocity" = quantile(driveVelocity, c(.9)))
   
-  #5 90th percentile of accelerations
-  features = c(features,"90th percentile of accelerations"=quantile(driveAcceleration, c(.9)))
+  #5 90th percentile of accelerations (abs)
+  features = c(features,"90th percentile of accelerations"=quantile(abs(driveAcceleration), c(.9)))
   
-  #6 10th percentile of accelerations
-  features = c(features,"10th percentile of accelerations" = quantile(driveAcceleration, c(.1)))
+  #6 10th percentile of accelerations (abs)
+  features = c(features,"10th percentile of accelerations" = quantile(abs(driveAcceleration), c(.1)))
+  
+  #_ 5th percentile of accelerations
+  features = c(features,"10th percentile of accelerations" = quantile(abs(driveAcceleration), c(.05)))
   
   #7 time of ride
   features = c(features,"time of ride" = length(driveVelocity))
   
   #8 length of ride
-  features = c(features,"length of ride" = sum(distances(driveLog)))
+  features = c(features,"length of ride" = sum(distances(driveLog))) 
   
-  #9 average velocity
-  features = c(features,"average velocity"=mean(driveVelocity))
+  #1 mean velocity between 0.5-20 
+  features = c(features,"mean velocity between 0.4-20 " = mean(driveVelocity[(driveVelocity>0.5)&(driveVelocity<20)]))
   
   #10 mean velocity between 20-40 
   features = c(features,"mean velocity between 20-40 " = mean(driveVelocity[(driveVelocity>20)&(driveVelocity<40)]))
@@ -110,9 +116,12 @@ featureCalculator <-function(driveLog, DriverFile){
   low_slowdowns = driveAcceleration[(driveAcceleration>(-2))&(driveAcceleration<0.05)]
   low_starts = driveAcceleration[(driveAcceleration>0.05)&(driveAcceleration<2)]
   features = c(features,"Ratio between acceleration (-2)/2" = mean(low_slowdowns)/mean(low_starts))
-
-
-features
+  
+  # time at const speed (where speed > 0, how smooth is the ride)
+  features = c(features,"time at const speed" = length(driveAcceleration[(abs(driveAcceleration)>0.05)&(abs(driveAcceleration)<0.7)]))
+  
+  
+  features
 }
 
 #load all driver dirs
@@ -130,11 +139,12 @@ for(directory in directories){
     features_table = rbind(features_table,t(featureCalculator(driveLog,DriverFile)))
   }
   
-  outpath = "/Users/gidutz/Downloads/kaggle/drivers/03_features/"
+  outpath = "/Users/gidutz/Downloads/kaggle/drivers/04_features/"
   
   write.csv(features_table,file=paste(outpath,basename(directory),".csv",sep=''))
   cat(basename(directory),"\n")
   
 }
+
 
 

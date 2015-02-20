@@ -18,16 +18,16 @@ readDrives <- function(driverLog){
 aggregated_distance_matrix = c()
 
 #for each driver
-for(driverFile in driversFiles){
+for(driverFile in sample(driversFiles,20)){
   
   # The driver's file is the positive samples
   positive_samples = readDrives(driverFile)  
   
-  #take 10 random drives from 10 random drivers
+  #take 20 random drives from 5 random drivers
   negavie_sapmles = numeric()
   for(randomDriver in sample(driversFiles[driversFiles!=driverFile],5)){
     alldrives=readDrives(randomDriver)
-    negavie_sapmles = rbind(negavie_sapmles,alldrives[sample(200,35),])
+    negavie_sapmles = rbind(negavie_sapmles,alldrives[sample(200,40),])
   }
   
   #add target values
@@ -57,7 +57,7 @@ for(driverFile in driversFiles){
   test = data[-(1:(2*nrow(data)/3)),]
   
   #Learn using SVM (remove col 1 which indicates the ride index)
-  model  <- svm(x= train[,-c(1,2,ncol(train))], y=train[,ncol(train)],kernel ="radial", type="C-classification",cost =5 , degree=5)
+  model  <- svm(x= train[,-c(1,2,ncol(train))], y=train[,ncol(train)],kernel ="radial", type="C-classification",cost =5 , degree=10, scale = T)
   
   
   prediction <- predict(model, test[,-c(1,2,ncol(train))])
@@ -72,7 +72,7 @@ for(driverFile in driversFiles){
   output = numeric()
   output <-predict(model , positive_samples[,-c(1,2,ncol(positive_samples))])
   outputFile = "/Users/gidutz/Downloads/kaggle/drivers/result/file14.txt"
-  write(paste(driver,"_",positive_samples[,2],",", as.numeric(output)-1,sep = ''), file = outputFile,  append = T )
+ # write(paste(driver,"_",positive_samples[,2],",", as.numeric(output)-1,sep = ''), file = outputFile,  append = T )
   
 }
 confusion_matrix = (table(prediction=aggregated_distance_matrix[,1]-1,actual=aggregated_distance_matrix[,2]))

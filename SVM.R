@@ -4,7 +4,7 @@ library(e1071)
 library(tools)
 
 
-featuresDir = "/Users/gidutz/Downloads/kaggle/drivers/02_features"
+featuresDir = "/Users/gidutz/Downloads/kaggle/drivers/03_features"
 
 #list all files under Directory
 driversFiles=list.files(path =featuresDir,full.names = T )
@@ -57,7 +57,7 @@ for(driverFile in sample(driversFiles,20)){
   test = data[-(1:(2*nrow(data)/3)),]
   
   #Learn using SVM (remove col 1 which indicates the ride index)
-  model  <- svm(x= train[,-c(1,2,ncol(train))], y=train[,ncol(train)],kernel ="radial", type="C-classification",cost =5 , degree=10, scale = T)
+  model  <- svm(x= train[,-c(1,2,ncol(train))], y=train[,ncol(train)],kernel ="radial", type="C-classification",cost =5 , degree=30, scale = T)
   
   
   prediction <- predict(model, test[,-c(1,2,ncol(train))])
@@ -71,8 +71,8 @@ for(driverFile in sample(driversFiles,20)){
   
   output = numeric()
   output <-predict(model , positive_samples[,-c(1,2,ncol(positive_samples))])
-  outputFile = "/Users/gidutz/Downloads/kaggle/drivers/result/file14.txt"
- # write(paste(driver,"_",positive_samples[,2],",", as.numeric(output)-1,sep = ''), file = outputFile,  append = T )
+  outputFile = "/Users/gidutz/Downloads/kaggle/drivers/result/file15.txt"
+#   write(paste(driver,"_",positive_samples[,2],",", as.numeric(output)-1,sep = ''), file = outputFile,  append = T )
   
 }
 confusion_matrix = (table(prediction=aggregated_distance_matrix[,1]-1,actual=aggregated_distance_matrix[,2]))
